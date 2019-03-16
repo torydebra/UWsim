@@ -1,0 +1,9 @@
+build
+devel
+install
+.rosinstall
+src/CMakeLists.txt
+UWsim.workspace
+#autosave
+*.autosave
+.catkin_workspace
