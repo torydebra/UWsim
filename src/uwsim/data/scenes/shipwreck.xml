@@ -51,7 +51,7 @@
       <x>16</x>
       <y>9 </y>
       <z>-7 </z>
-    </position>
+    </position> 
     <lookAt>
       <x>5</x>
       <y>7 </y>
@@ -61,7 +61,7 @@
 
  <vehicle>
     <name>girona500_RAUVI</name>
-    <file>data/models/g500ARM5.urdf</file>
+    <file>data/scenes/g500ARM5.urdf</file>
     <jointValues>
       <joint> 0 </joint>
       <joint> M_PI_4</joint>
@@ -83,7 +83,7 @@
 
   <vehicle>
     <name>girona500_TRIDENT</name>
-    <file>data/models/g500ARM5.urdf</file>
+    <file>data/scenes/g500ARM5.urdf</file>
     <jointValues>
       <joint> 0 </joint>
       <joint> M_PI_4</joint>

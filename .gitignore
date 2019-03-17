@@ -4,6 +4,7 @@ install
 .rosinstall
 src/CMakeLists.txt
 UWsim.workspace
+UWsim.workspace.user
 #autosave
 *.autosave
 .catkin_workspace

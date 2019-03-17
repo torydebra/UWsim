@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(peg_pkg)
+project(peg)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -8,6 +8,8 @@ project(peg_pkg)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  std_srvs
+  topic_tools
   roscpp
   rospy
   std_msgs
@@ -105,8 +107,14 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES peg_pkg
-#  CATKIN_DEPENDS roscpp rospy std_msgs
-#  DEPENDS system_lib
+   CATKIN_DEPENDS
+     roscpp 
+     rospy 
+     std_msgs
+     std_srvs
+	 topic_tools
+   DEPENDS 
+     roscpp
 )
 
 ###########
@@ -163,6 +171,10 @@ include_directories(
 #   scripts/my_python_script
 #   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
+install(PROGRAMS src/keyboardCommandTwist_A.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+install(PROGRAMS src/keyboardCommandOdom_A.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 ## Mark executables and/or libraries for installation
 # install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node

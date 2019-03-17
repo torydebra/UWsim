@@ -155,7 +155,7 @@
     <objectPicker>
       <name>picker_A</name>
       <relativeTo>part4_base</relativeTo>
-      <range>0.5</range>
+      <range>0.1</range>
       <position>
         <x>0</x>
         <y>0</y>
@@ -560,7 +560,7 @@
 
   <object>
     <name> pipe </name>
-    <file> objects/pipecreo2.obj </file>
+    <file> objects/pipecreo.obj </file>
     <position>
       <x> 0</x>
       <y> 0 </y>
@@ -610,19 +610,19 @@
 
   <rosInterfaces>
     <ROSOdomToPAT>
-      <topic> /uwsim/g500_A/dataNavigator_A </topic>
+      <topic> /uwsim/g500_A/odom_command_A </topic>
       <vehicleName> girona500_A </vehicleName>
     </ROSOdomToPAT>
     <ROSOdomToPAT>
-      <topic> /uwsim/g500_B/dataNavigator_B </topic>
+      <topic> /uwsim/g500_B/odom_command_B </topic>
       <vehicleName> girona500_B </vehicleName>
     </ROSOdomToPAT>
     <PATToROSOdom>
-      <topic> /uwsim/g500_A/odom_A </topic>
+      <topic> /uwsim/g500_A/odom_state_A </topic>
       <vehicleName> girona500_A </vehicleName>
     </PATToROSOdom>
     <PATToROSOdom>
-      <topic> /uwsim/g500_B/odom_B </topic>
+      <topic> /uwsim/g500_B/odom_state_B </topic>
       <vehicleName> girona500_B </vehicleName>
     </PATToROSOdom>
     <WorldToROSTF>
@@ -641,11 +641,11 @@
     </ArmToROSJointState>
 
     <ROSJointStateToArm>
-			<topic> /uwsim/g500_A/joint_state_command_A</topic>
+			<topic> /uwsim/g500_A/joint_command_A</topic>
 			<vehicleName> girona500_A </vehicleName>
     </ROSJointStateToArm>
     <ROSJointStateToArm>
-			<topic> /uwsim/g500_B/joint_state_command_B</topic>
+			<topic> /uwsim/g500_B/joint_command_B</topic>
 			<vehicleName> girona500_B </vehicleName>
     </ROSJointStateToArm>
 
@@ -661,11 +661,11 @@
     </VirtualCameraToROSImage>
 
     <ROSTwistToPAT>
-      <topic> /uwsim/g500_A/twist_A</topic>
+      <topic> /uwsim/g500_A/twist_command_A</topic>
       <vehicleName> girona500_A</vehicleName>
     </ROSTwistToPAT>
     <ROSTwistToPAT>
-      <topic> /uwsim/g500_B/twist_B</topic>
+      <topic> /uwsim/g500_B/twist_command_B</topic>
       <vehicleName> girona500_B</vehicleName>
     </ROSTwistToPAT>
 
@@ -681,11 +681,11 @@
     </RangeSensorToROSRange>
 
     <ROSPoseToPAT>
-      <topic> /uwsim/g500_A/pose_A</topic>
+      <topic> /uwsim/g500_A/pose_command_A</topic>
       <vehicleName> girona500_A </vehicleName>
     </ROSPoseToPAT>
     <ROSPoseToPAT>
-      <topic> /uwsim/g500_B/pose_B</topic>
+      <topic> /uwsim/g500_B/pose_command_B</topic>
       <vehicleName> girona500_B </vehicleName>
     </ROSPoseToPAT>
 
