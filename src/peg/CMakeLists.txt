@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  tf
 )
 
 ## System dependencies are found with CMake's conventions
@@ -112,7 +113,8 @@ catkin_package(
      rospy 
      std_msgs
      std_srvs
-	 topic_tools
+     topic_tools
+     tf
    DEPENDS 
      roscpp
 )
@@ -132,6 +134,7 @@ include_directories(
 # add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/peg_pkg.cpp
 # )
+add_library(Publisher src/publisher.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -142,6 +145,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/peg_pkg_node.cpp)
+add_executable(Controller src/controller.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -157,6 +161,8 @@ include_directories(
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
+target_link_libraries(Controller ${catkin_LIBRARIES})
+target_link_libraries(Controller Publisher)
 
 #############
 ## Install ##

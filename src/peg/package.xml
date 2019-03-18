@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>peg</name>
-  <version>0.0.0</version>
+  <version>0.0.1</version>
   <description>The peg package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
@@ -26,6 +26,7 @@
   <!-- Authors do not have to be maintainers, but could be -->
   <!-- Example: -->
   <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
+  <author email="toridebraus@gmail.com">Davide Torielli</author>
 
 
   <!-- The *depend tags are used to specify dependencies -->
@@ -56,6 +57,7 @@
   <build_depend>std_srvs</build_depend>
   <build_depend>topic_tools</build_depend>
   <build_depend>message_generation</build_depend>
+  <build_depend>tf</build_depend>
   
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>rospy</build_export_depend>
@@ -68,6 +70,7 @@
   <exec_depend>message_runtime</exec_depend>
   <exec_depend>std_srvs</exec_depend>
   <exec_depend>topic_tools</exec_depend>
+  <exec_depend>tf</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->
