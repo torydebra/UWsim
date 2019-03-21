@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   tf
+  tf_conversions
 )
 
 ## System dependencies are found with CMake's conventions
@@ -24,6 +25,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
 # catkin_python_setup()
+
+#to exclude two non existent header from cmat.h
+add_definitions(-DCMAT_STATIC_BUFFERS -DCMAT_STANDALONE)
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -115,6 +119,7 @@ catkin_package(
      std_srvs
      topic_tools
      tf
+     tf_conversions
    DEPENDS 
      roscpp
 )
@@ -129,12 +134,19 @@ include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
 )
+link_directories(
+  ${catkin_LIBRARY_DIRS}
+  /usr/local/lib/cmat
+)
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/peg_pkg.cpp
 # )
 add_library(Publisher src/publisher.cpp)
+add_library(Task classes/task.cpp)
+add_library(Conversions support/conversions.cpp)
+add_library(Prints support/prints.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -146,6 +158,7 @@ add_library(Publisher src/publisher.cpp)
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/peg_pkg_node.cpp)
 add_executable(Controller src/controller.cpp)
+add_executable(Controller2 src/controller2.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -163,6 +176,15 @@ add_executable(Controller src/controller.cpp)
 # )
 target_link_libraries(Controller ${catkin_LIBRARIES})
 target_link_libraries(Controller Publisher)
+
+target_link_libraries(Controller2
+    ${catkin_LIBRARIES}
+    Publisher
+    Task
+    linuxcmat
+    Conversions
+    Prints
+)
 
 #############
 ## Install ##

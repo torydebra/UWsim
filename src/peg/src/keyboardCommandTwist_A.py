@@ -13,7 +13,7 @@ from std_srvs.srv import Empty
 twist_topic="/uwsim/g500_A/twist_command_A"
 joint_topic="/uwsim/g500_A/joint_command_A"
 #base velocity for the teleoperation (0.5 m/s) / (0.5rad/s)
-baseVelocity=0.2
+baseVelocity=0.8
 baseJoint=0.1
 
 #Console input variables to teleop it from the console
@@ -61,6 +61,10 @@ try:
                 msgTwist.twist.linear.z = baseVelocity
             elif c == 'f':
                 msgTwist.twist.linear.z = -baseVelocity
+            elif c == 'q':
+                msgTwist.twist.angular.x = -baseVelocity
+            elif c == 'e':
+                msgTwist.twist.angular.x = baseVelocity
             #JointsCommands
             elif c == 't':
             	msgJoint.name.append("Slew")

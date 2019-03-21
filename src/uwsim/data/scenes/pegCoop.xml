@@ -740,7 +740,7 @@
     </DVLSensorToROS>
 -->
 
-    <RangeImageSensorToROSImage>
+<!--    <RangeImageSensorToROSImage>
       <cameraName>rangeImage_A</cameraName>
       <imageTopic> /uwsim/g500_A/rangecamera_A </imageTopic>
       <infoTopic> /uwsim/g500_A/rangecamera_info_A </infoTopic>
@@ -750,6 +750,7 @@
       <imageTopic> /uwsim/g500_B/rangecamera_B </imageTopic>
       <infoTopic> /uwsim/g500_B/rangecamera_info_B </infoTopic>
     </RangeImageSensorToROSImage>
+-->
 
 <!--
     <multibeamSensorToLaserScan>

@@ -1,6 +1,10 @@
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
 #include "../header/publisher.h"
+#include <eigen3/Eigen/Geometry>
+#include <cmat/cmat.h>
+
+typedef Eigen::Matrix<double, 3, 3> JacobianVehiclePose;
 
 int main(int argc, char **argv)
 {
@@ -22,9 +26,12 @@ int main(int argc, char **argv)
   twist.twist.angular.z=0;
 
   // coord vehicle near the peg [-0.287, -0.062, 7.424]
-  tf::Vector3 goalPoint = tf::Vector3(-0.287, -0.062, 7.424); //respect world
+  tf::Vector3 goalPoint = tf::Vector3(-5.287, -0.062, 7.424); //respect world
+
+  tf::Transform goal = tf::Transform(tf::Matrix3x3(1, 0, 0,  0, 1, 0,  0, 0, 1), goalPoint);
 
   tf::Vector3 qDot = tf::Vector3(0, 0, 0);
+  tf::Vector3 xDot = tf::Vector3(0, 0, 0);
 
   //TRANSFORM LISTENER ROBE
   tf::TransformListener tfListener;
@@ -45,8 +52,28 @@ int main(int argc, char **argv)
       continue;
     }
 
-    double k = 0.05;
-    qDot = k * (goalPoint - wTv.getOrigin());
+    //simple difference controller
+    //double k = 0.05;
+    //qDot = k * (goalPoint - wTv.getOrigin());
+
+    /** with jacobian */
+    //reference
+    double k = 0.2;
+    xDot = k * (goalPoint - wTv.getOrigin());
+
+    double vect[16];
+    vect[0] = wTv.getBasis().getRow(0).getX();
+    vect[0] = wTv.getBasis().getRow(0).getY();
+
+    //cmat_wTv.SetRotMatrix(wTv.getBasis());
+    //cmat_wTv.Matrix[1] = 1;
+    //cmat_wTv.GetTrasl().PrintMtx();
+    //JacobianVehiclePose Jveh = JacobianVehiclePose();
+    //Jveh.
+    tf::Matrix3x3 jacobianVehiclePose = wTv.getBasis();
+
+    qDot = (jacobianVehiclePose.inverse() * xDot);
+
 
     twist.twist.linear.x=qDot.getX();
     twist.twist.linear.y=qDot.getY();
