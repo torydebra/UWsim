@@ -9,6 +9,10 @@
 #include "../support/support.h"
 #include "../support/defines.h"
 
+
+//TODO fare il .h
+int equality_icat(Task task, CMAT::Matrix &rhop, CMAT::Matrix &Q);
+
 int main(int argc, char **argv)
 {
   ROS_INFO("[CONTROLLER] Start");
@@ -36,7 +40,7 @@ int main(int argc, char **argv)
 
   /// GOAL
 
-  double goalLine[3] = {-5.287, -0.062, 7.424};
+  double goalLine[3] = {-0.287, -0.062, 7.424};
   CMAT::Vect3 goal_xyz(goalLine);
   CMAT::RotMatrix goal_rot = CMAT::Matrix::Eye(3);
   CMAT::TransfMatrix wTgoal (goal_rot, goal_xyz);
@@ -105,11 +109,13 @@ int main(int argc, char **argv)
     /// PSEUDOINVERSE!!!!
     CMAT::Matrix qDot(TOT_DOF,1);
     //qdot = [arm arm arm arm wx wy wz x y z]
-    qDot = vehicleReaching.J.RegPseudoInverse(0.001, 0.0001) *
-                       vehicleReaching.reference;
 
-   // vehicleReaching.J.RegPseudoInverse(0.001, 0.0001).PrintMtx();
-    //vehicleReaching.reference.PrintMtx();
+    //pseudo easy
+    //qDot = vehicleReaching.J.RegPseudoInverse(0.001, 0.0001) * vehicleReaching.reference;
+
+    CMAT::Matrix Q = CMAT::Matrix::Eye(TOT_DOF);
+
+    equality_icat(vehicleReaching, qDot, Q);
 
 
     twist.twist.angular.x=qDot(5);
@@ -127,3 +133,67 @@ int main(int argc, char **argv)
 
   return 0;
 }
+
+
+
+//TODO passare il task o le cose singole?
+//int Equalitytask(CMAT::Matrix J, CMAT::Matrix Q, CMAT::Matrix rhop, CMAT::Matrix xdot,) {
+int equality_icat(Task task, CMAT::Matrix &rhop, CMAT::Matrix &Q) {
+
+  //J jacobiana task
+  //Q inizializzata a eye(totDof) prima di fare tutto
+  //rhop il controllo cinematico che viene passato a tutti i lower priority task,
+  //       che poi alla fine è qdot voluto
+  // xdot è reference del task
+  //mu double var globale che viene modificata da cmat pseudoinverse varie
+  //flag int analogo a mu
+  //NOTA: sono doppie: una per calcolare la W una per la barGpinv
+
+  CMAT::Matrix I = CMAT::Matrix::Eye(TOT_DOF);
+
+  // the actual Jacobian
+  CMAT::Matrix barG = task.J * Q;
+
+  CMAT::Matrix W, barGpinv;
+
+
+  /// regularization matrices
+  // T is the reg. matrix for the different levels of task priority
+  // takes into account that not all the controls are available
+  CMAT::Matrix T = (I - Q).Transpose() * (I-Q);
+
+  // compute W to solve the problem of discontinuity due to different priority levels
+  W = barG *
+      (barG.Transpose() * barG + T)
+        .RegPseudoInverse(task.threshold, task.threshold, task.mu_W, task.flag_W) *
+      barG.Transpose();
+
+  /// compute the rho for this task
+  barGpinv = (barG.Transpose() * barG)
+      .RegPseudoInverse(task.threshold, task.threshold, task.mu_G, task.flag_G);
+
+  ///TODO: in ctrl_task_algo calcola anche un tmpProjector e una P_ che non so a che servono
+
+  rhop = rhop + Q * barGpinv * barG.Transpose() * W * (task.reference - task.J * rhop);
+
+  // update the projector matrix
+  Q = Q * (I - barGpinv * barG.Transpose() * barG);
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

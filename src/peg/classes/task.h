@@ -3,6 +3,7 @@
 
 #include <cmat/cmat.h>
 
+
 class Task
 {
 public:
@@ -11,6 +12,14 @@ public:
   CMAT::Vect6 reference;
 
   Task(int dimension, int dof);
+
+  int flag_W;
+  double mu_W;
+  int flag_G;
+  double mu_G;
+
+  int threshold;
+  int lambda;
 
 };
 
