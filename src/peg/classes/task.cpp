@@ -4,6 +4,8 @@
 Task::Task(int dimension, int dof)
 {
 
+  this->dimension = dimension;
+
   J = CMAT::Matrix::Zeros(dimension, dof);
   A = CMAT::Matrix::Zeros(dimension, dimension);
   reference = CMAT::Matrix::Zeros(dimension,1);

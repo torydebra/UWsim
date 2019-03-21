@@ -7,6 +7,7 @@
 class Task
 {
 public:
+  int dimension; //dimension of the task (1 for scalar task);
   CMAT::Matrix J; // the jacobian
   CMAT::Matrix A; //the Activation function
   CMAT::Vect6 reference;

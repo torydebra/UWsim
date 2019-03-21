@@ -12,6 +12,7 @@
 
 //TODO fare il .h
 int equality_icat(Task task, CMAT::Matrix &rhop, CMAT::Matrix &Q);
+int inequality_icat(Task task, CMAT::Matrix &rhop, CMAT::Matrix &Q);
 
 int main(int argc, char **argv)
 {
@@ -115,7 +116,7 @@ int main(int argc, char **argv)
 
     CMAT::Matrix Q = CMAT::Matrix::Eye(TOT_DOF);
 
-    equality_icat(vehicleReaching, qDot, Q);
+    inequality_icat(vehicleReaching, qDot, Q);
 
 
     twist.twist.angular.x=qDot(5);
@@ -150,34 +151,71 @@ int equality_icat(Task task, CMAT::Matrix &rhop, CMAT::Matrix &Q) {
   //NOTA: sono doppie: una per calcolare la W una per la barGpinv
 
   CMAT::Matrix I = CMAT::Matrix::Eye(TOT_DOF);
+  CMAT::Matrix barG, barGtransp, T, W, barGpinv;
+  // barG the actual Jacobian
+  barG = task.J * Q;
+  barGtransp = barG.Transpose();
 
-  // the actual Jacobian
-  CMAT::Matrix barG = task.J * Q;
-
-  CMAT::Matrix W, barGpinv;
-
-
-  /// regularization matrices
+  /// Regularization matrices
   // T is the reg. matrix for the different levels of task priority
   // takes into account that not all the controls are available
-  CMAT::Matrix T = (I - Q).Transpose() * (I-Q);
+  T = (I - Q).Transpose() * (I-Q);
 
   // compute W to solve the problem of discontinuity due to different priority levels
   W = barG *
-      (barG.Transpose() * barG + T)
-        .RegPseudoInverse(task.threshold, task.threshold, task.mu_W, task.flag_W) *
-      barG.Transpose();
+      (barGtransp * barG + T)
+        .RegPseudoInverse(task.threshold, task.lambda, task.mu_W, task.flag_W) *
+      barGtransp;
 
-  /// compute the rho for this task
-  barGpinv = (barG.Transpose() * barG)
-      .RegPseudoInverse(task.threshold, task.threshold, task.mu_G, task.flag_G);
+  /// Compute the rho for this task
+  barGpinv = (barGtransp * barG)
+      .RegPseudoInverse(task.threshold, task.lambda, task.mu_G, task.flag_G);
+  rhop = rhop + Q * barGpinv * barGtransp * W * (task.reference - task.J * rhop);
 
   ///TODO: in ctrl_task_algo calcola anche un tmpProjector e una P_ che non so a che servono
 
-  rhop = rhop + Q * barGpinv * barG.Transpose() * W * (task.reference - task.J * rhop);
 
-  // update the projector matrix
-  Q = Q * (I - barGpinv * barG.Transpose() * barG);
+  /// Update the projector matrix
+  Q = Q * (I - barGpinv * barGtransp * barG);
+
+}
+
+int inequality_icat(Task task, CMAT::Matrix &rhop, CMAT::Matrix &Q) {
+
+  CMAT::Matrix I = CMAT::Matrix::Eye(TOT_DOF);
+  CMAT::Matrix barG, barGtransp, barGtranspAA, T, H, W, barGpinv;
+  // barG the actual Jacobian
+  barG = task.J * Q;
+  barGtransp = barG.Transpose();
+  barGtranspAA = barGtransp * task.A * task.A;
+
+  /// Regularization matrices
+  // T is the reg. matrix for the different levels of task priority
+  // takes into account that not all the controls are available
+  T = (I - Q).Transpose() * (I-Q);
+  // H is the reg. matrix for the activation, i.e. A*(I-A)
+  H = barGtransp *
+      (CMAT::Matrix::Eye(task.dimension) - task.A)*
+      task.A * barG;
+
+  // compute W to solve the problem of discontinuity due to different priority levels
+  W = barG *
+      (barGtranspAA * barG + T + H)
+        .RegPseudoInverse(task.threshold, task.lambda, task.mu_W, task.flag_W) *
+      barGtranspAA;
+
+  barGpinv = (barGtranspAA * barG + H)
+               .RegPseudoInverse(task.threshold, task.lambda, task.mu_G, task.flag_G);
+
+
+  ///TODO: in ctrl_task_algo calcola anche un tmpProjector e una P_ che non so a che servono
+
+
+  /// Compute the rho for this task
+  rhop = rhop + Q * barGpinv * barGtranspAA * W * (task.reference - task.J * rhop);
+
+  /// Update the projector matrix
+  Q = Q * (I - barGpinv * barGtranspAA * barG);
 
 }
 
