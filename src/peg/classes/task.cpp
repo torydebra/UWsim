@@ -63,18 +63,3 @@ int Task::getThreshold(){return this->threshold;}
 int Task::getLambda(){return this->lambda;}
 int Task::getDof(){return this->dof;}
 int Task::getDimension(){return this->dimension;}
-
-//Public Overloaded Non-Virtuals Call Protected Non-Overloaded Virtuals
-int Task::setJacobian(tf::StampedTransform wTv_tf){
-  setJacobian_impl(wTv_tf);
-}
-
-int Task::setActivation(){
-  setActivation_impl();
-}
-
-int Task::setReference(
-    tf::StampedTransform wTv_tf, CMAT::TransfMatrix wTg_cmat){
-
-  setReference_impl(wTv_tf, wTg_cmat);
-}

@@ -11,8 +11,8 @@
 
 
 //TODO fare il .h
-int equality_icat(Task* task, CMAT::Matrix &rhop, CMAT::Matrix &Q);
-int inequality_icat(Task* task, CMAT::Matrix &rhop, CMAT::Matrix &Q);
+int equality_icat(Task* task, CMAT::Matrix* rhop, CMAT::Matrix* Q);
+int inequality_icat(Task* task, CMAT::Matrix* rhop, CMAT::Matrix* Q);
 
 int main(int argc, char **argv)
 {
@@ -54,8 +54,8 @@ int main(int argc, char **argv)
   tfListener.waitForTransform("world", "/girona500_A", ros::Time(0), ros::Duration(3.0));
 
 
-  //initialize task
-  Task* vehicleReaching = new VehicleReachTask(6, TOT_DOF); //4DOF ARM
+  //initialize tasks
+  VehicleReachTask vehicleReaching(6, TOT_DOF);//4DOF ARM
 
   ros::Rate r(1000); //1Hz
   while(ros::ok()){
@@ -69,21 +69,19 @@ int main(int argc, char **argv)
       continue;
     }
 
-    vehicleReaching->setActivation();
-    vehicleReaching->setJacobian(wTv_tf);
-    vehicleReaching->setReference(wTv_tf, wTgoal_cmat);
+    vehicleReaching.setActivation();
+    vehicleReaching.setJacobian(wTv_tf);
+    vehicleReaching.setReference(wTv_tf, wTgoal_cmat);
 
 
     /// PSEUDOINVERSE!!!!
-    CMAT::Matrix qDot(TOT_DOF,1);
+
+    // TODO initialize algo
     //qdot = [arm arm arm arm wx wy wz x y z]
-
-    //pseudo easy
-    //qDot = vehicleReaching.J.RegPseudoInverse(0.001, 0.0001) * vehicleReaching.reference;
-
+    CMAT::Matrix qDot(TOT_DOF,1);
     CMAT::Matrix Q = CMAT::Matrix::Eye(TOT_DOF);
 
-    inequality_icat(vehicleReaching, qDot, Q);
+    equality_icat(&vehicleReaching, &qDot, &Q);
 
 
     twist.twist.angular.x=qDot(5);
@@ -99,7 +97,6 @@ int main(int argc, char **argv)
     r.sleep();
   }
 
-  delete vehicleReaching;
   return 0;
 }
 
@@ -107,7 +104,7 @@ int main(int argc, char **argv)
 
 //TODO passare il task o le cose singole?
 //int Equalitytask(CMAT::Matrix J, CMAT::Matrix Q, CMAT::Matrix rhop, CMAT::Matrix xdot,) {
-int equality_icat(Task* task, CMAT::Matrix &rhop, CMAT::Matrix &Q) {
+int equality_icat(Task* task, CMAT::Matrix* rhop, CMAT::Matrix* Q) {
 
   CMAT::Matrix J = task->getJacobian(); //J jacobiana task
   CMAT::Matrix ref = task->getReference(); //  reference del task
@@ -123,13 +120,13 @@ int equality_icat(Task* task, CMAT::Matrix &rhop, CMAT::Matrix &Q) {
   CMAT::Matrix I = CMAT::Matrix::Eye(task->getDof());
   CMAT::Matrix barG, barGtransp, T, W, barGpinv;
   // barG the actual Jacobian
-  barG = J * Q;
+  barG = J * (*Q);
   barGtransp = barG.Transpose();
 
   /// Regularization matrices
   // T is the reg. matrix for the different levels of task priority
   // takes into account that not all the controls are available
-  T = (I - Q).Transpose() * (I-Q);
+  T = (I - (*Q)).Transpose() * (I-(*Q));
 
   // compute W to solve the problem of discontinuity due to different priority levels
   W = barG *
@@ -142,17 +139,17 @@ int equality_icat(Task* task, CMAT::Matrix &rhop, CMAT::Matrix &Q) {
   barGpinv = (barGtransp * barG)
       .RegPseudoInverse(task->getThreshold(), task->getLambda(),
                         task->getMu_G(), task->getFlag_G());
-  rhop = rhop + Q * barGpinv * barGtransp * W * (ref - J * rhop);
+  (*rhop) = (*rhop) + (*Q) * barGpinv * barGtransp * W * (ref - J * (*rhop));
 
   ///TODO: in ctrl_task_algo calcola anche un tmpProjector e una P_ che non so a che servono
 
 
   /// Update the projector matrix
-  Q = Q * (I - barGpinv * barGtransp * barG);
+  (*Q) = (*Q) * (I - barGpinv * barGtransp * barG);
 
 }
 
-int inequality_icat(Task* task, CMAT::Matrix &rhop, CMAT::Matrix &Q) {
+int inequality_icat(Task* task, CMAT::Matrix* rhop, CMAT::Matrix* Q) {
 
   CMAT::Matrix J = task->getJacobian(); //Jacobiana of task
   CMAT::Matrix ref = task->getReference(); // Reference of task
@@ -161,14 +158,14 @@ int inequality_icat(Task* task, CMAT::Matrix &rhop, CMAT::Matrix &Q) {
   CMAT::Matrix I = CMAT::Matrix::Eye(task->getDof());
   CMAT::Matrix barG, barGtransp, barGtranspAA, T, H, W, barGpinv;
   // barG the actual Jacobian
-  barG = J * Q;
+  barG = J * (*Q);
   barGtransp = barG.Transpose();
   barGtranspAA = barGtransp * A * A;
 
   /// Regularization matrices
   // T is the reg. matrix for the different levels of task priority
   // takes into account that not all the controls are available
-  T = (I - Q).Transpose() * (I-Q);
+  T = (I - (*Q)).Transpose() * (I-(*Q));
   // H is the reg. matrix for the activation, i.e. A*(I-A)
   H = barGtransp *
       (CMAT::Matrix::Eye(task->getDimension()) - A)*
@@ -190,10 +187,10 @@ int inequality_icat(Task* task, CMAT::Matrix &rhop, CMAT::Matrix &Q) {
 
 
   /// Compute the rho for this task
-  rhop = rhop + Q * barGpinv * barGtranspAA * W * (ref - J * rhop);
+  (*rhop) = (*rhop) + (*Q) * barGpinv * barGtranspAA * W * (ref - J * (*rhop));
 
   /// Update the projector matrix
-  Q = Q * (I - barGpinv * barGtranspAA * barG);
+  (*Q) = (*Q) * (I - barGpinv * barGtranspAA * barG);
 
 }
 

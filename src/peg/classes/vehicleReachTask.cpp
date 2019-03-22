@@ -6,9 +6,7 @@ VehicleReachTask::VehicleReachTask(int dimension, int dof)
 VehicleReachTask::VehicleReachTask(int dimension)
   : Task(dimension) {}
 
-VehicleReachTask::~VehicleReachTask(){}
-
-int VehicleReachTask::setJacobian_impl(tf::StampedTransform wTv_tf){
+int VehicleReachTask::setJacobian(tf::StampedTransform wTv_tf){
 
   Eigen::MatrixXd jacobian_eigen(dimension, dof);
   jacobian_eigen = Eigen::MatrixXd::Zero(dimension, dof);
@@ -31,7 +29,7 @@ int VehicleReachTask::setJacobian_impl(tf::StampedTransform wTv_tf){
 
 }
 
-int VehicleReachTask::setActivation_impl(){
+int VehicleReachTask::setActivation(){
 
   double vectDiag[6];
   std::fill_n(vectDiag, 6, 1);
@@ -39,7 +37,7 @@ int VehicleReachTask::setActivation_impl(){
 
 }
 
-int VehicleReachTask::setReference_impl(
+int VehicleReachTask::setReference(
     tf::StampedTransform wTv_tf, CMAT::TransfMatrix wTg_cmat){
 
   CMAT::TransfMatrix wTv_cmat = CONV::transfMatrix_tf2cmat(wTv_tf);

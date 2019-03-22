@@ -11,6 +11,27 @@
 
 class Task
 {
+private:
+
+
+protected:
+  int dimension; //dimension of the task (1 for scalar task); (rows)
+  int dof; //total dofs of the robot (columns)
+  CMAT::Matrix J; // the Jacobian
+  CMAT::Matrix A; //the Activation function
+  CMAT::Matrix reference;
+
+  int flag_W;
+  double mu_W;
+  int flag_G;
+  double mu_G;
+
+  int threshold;
+  int lambda;
+
+  Task(int dimension, int dof);
+  Task(int dimension);
+
 public:
 
   virtual ~Task();
@@ -33,34 +54,6 @@ public:
   int getDof();
   int getDimension();
 
-  //Public Overloaded Non-Virtuals Call Protected Non-Overloaded Virtuals
-  int setJacobian(tf::StampedTransform wTv_tf);
-  int setActivation();
-  int setReference(tf::StampedTransform wTv_tf, CMAT::TransfMatrix wTg_cmat);
-
-
-protected:
-  int dimension; //dimension of the task (1 for scalar task); (rows)
-  int dof; //total dofs of the robot (columns)
-  CMAT::Matrix J; // the Jacobian
-  CMAT::Matrix A; //the Activation function
-  CMAT::Matrix reference;
-
-  int flag_W;
-  double mu_W;
-  int flag_G;
-  double mu_G;
-
-  int threshold;
-  int lambda;
-
-  Task(int dimension, int dof);
-  Task(int dimension);
-
-
-  virtual int setJacobian_impl(tf::StampedTransform) = 0;
-  virtual int setActivation_impl() = 0;
-  virtual int setReference_impl(tf::StampedTransform, CMAT::TransfMatrix) = 0;
 
 
 };

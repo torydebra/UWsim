@@ -11,17 +11,15 @@
 #include "../support/support.h"
 
 
-class VehicleReachTask : public Task
-{
+class VehicleReachTask : public Task {
+
 public:
   VehicleReachTask(int dimension, int dof);
   VehicleReachTask(int dimension);
-  ~VehicleReachTask();
 
-private:
-  int setActivation_impl();
-  int setJacobian_impl(tf::StampedTransform wTv_tf);
-  int setReference_impl(
+  int setActivation();
+  int setJacobian(tf::StampedTransform wTv_tf);
+  int setReference(
       tf::StampedTransform wTv_tf, CMAT::TransfMatrix wTg_cmat);
 
 };
