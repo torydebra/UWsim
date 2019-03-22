@@ -36,6 +36,8 @@ public:
 
   virtual ~Task();
 
+  virtual int updateMatrices(struct Transforms* const transf) = 0;
+
   CMAT::Matrix getJacobian();
   CMAT::Matrix getActivation();
   CMAT::Matrix getReference();

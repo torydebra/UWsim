@@ -6,6 +6,14 @@ VehicleReachTask::VehicleReachTask(int dimension, int dof)
 VehicleReachTask::VehicleReachTask(int dimension)
   : Task(dimension) {}
 
+
+int VehicleReachTask::updateMatrices(struct Transforms* const transf){
+
+  setActivation();
+  setJacobian(transf->wTv_tf);
+  setReference(transf->wTv_tf, transf->wTgoal_cmat);
+}
+
 int VehicleReachTask::setJacobian(tf::StampedTransform wTv_tf){
 
   Eigen::MatrixXd jacobian_eigen(dimension, dof);

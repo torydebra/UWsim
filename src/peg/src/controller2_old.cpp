@@ -5,14 +5,14 @@
 #include <tf_conversions/tf_eigen.h>
 #include "../header/publisher.h"
 #include <cmat/cmat.h>
-#include "../classes/vehicleReachTask.h"
+#include "../classes/task.h"
 #include "../support/support.h"
 #include "../support/defines.h"
 
 
 //TODO fare il .h
-int equality_icat(Task* task, CMAT::Matrix* rhop, CMAT::Matrix* Q);
-int inequality_icat(Task* task, CMAT::Matrix* rhop, CMAT::Matrix* Q);
+int equality_icat(Task task, CMAT::Matrix &rhop, CMAT::Matrix &Q);
+int inequality_icat(Task task, CMAT::Matrix &rhop, CMAT::Matrix &Q);
 
 int main(int argc, char **argv)
 {
@@ -36,17 +36,17 @@ int main(int argc, char **argv)
   // coord vehicle near the peg [-0.287, -0.062, 7.424]
   //tf::Vector3 goalPoint = tf::Vector3(-5.287, -0.062, 7.424); //respect world
   //tf::Transform goal = tf::Transform(tf::Matrix3x3(1, 0, 0,  0, 1, 0,  0, 0, 1), goalPoint);
-  tf::Vector3 qDot = tf::Vector3(0, 0, 0);
   //tf::Vector3 xDot = tf::Vector3(0, 0, 0);
 
   /// GOAL
+
   double goalLine[3] = {-0.287, -0.062, 7.424};
   CMAT::Vect3 goal_xyz(goalLine);
   CMAT::RotMatrix goal_rot = CMAT::Matrix::Eye(3);
-  CMAT::TransfMatrix wTgoal_cmat (goal_rot, goal_xyz);
+  CMAT::TransfMatrix wTgoal (goal_rot, goal_xyz);
 
 
-  //TRANSFORM LISTENER things
+  //TRANSFORM LISTENER ROBE
   tf::TransformListener tfListener;
   tf::StampedTransform wTv_tf;
 
@@ -54,8 +54,8 @@ int main(int argc, char **argv)
   tfListener.waitForTransform("world", "/girona500_A", ros::Time(0), ros::Duration(3.0));
 
 
-  //initialize tasks
-  VehicleReachTask vehicleReaching(6, TOT_DOF);//4DOF ARM
+  //initialize task
+  Task vehicleReaching(6,10); //4DOF ARM
 
   ros::Rate r(1000); //1Hz
   while(ros::ok()){
@@ -69,19 +69,53 @@ int main(int argc, char **argv)
       continue;
     }
 
-    vehicleReaching.setActivation();
-    vehicleReaching.setJacobian(wTv_tf);
-    vehicleReaching.setReference(wTv_tf, wTgoal_cmat);
+    /// Activation
+    double vectDiag[6];
+    std::fill_n(vectDiag, 6, 1);
+    vehicleReaching.A.SetDiag(vectDiag);
+
+
+    /** Jacobian */
+   // double* vector = SUPPORT::tfMat_to_double(wTv.getBasis());
+
+    Eigen::MatrixXd jacobian_eigen(6,10);
+    jacobian_eigen = Eigen::MatrixXd::Zero(6,10);
+
+    Eigen::Matrix3d wRv_Eigen;
+    tf::matrixTFToEigen(wTv_tf.getBasis(), wRv_Eigen);
+
+    //matrix([1:6];[1:4]) deve restare zero
+    //matrix([1:3];[5:7]) parte linear
+    jacobian_eigen.block(0,4, 3,3) = wRv_Eigen;
+
+    //matrix([4:6];[8:10]) parte angolare
+    //according to eigen doc, using these kind of specific function (and not
+    //(.block improves performance
+    jacobian_eigen.bottomRightCorner(3,3) = wRv_Eigen;
+
+    // in pasto a cmat
+    //eigen unroll to vector for cmat function
+    vehicleReaching.J = CMAT::Matrix(6,TOT_DOF, jacobian_eigen.data());
+
+
+    /// Reference
+    //std::cout << wRv_Eigen << std::endl;
+    CMAT::TransfMatrix wTv_cmat = CONV::transfMatrix_tf2cmat(wTv_tf);
+    CMAT::Vect6 error = CMAT::CartError(wTgoal, wTv_cmat);
+    double k = 0.2;
+    vehicleReaching.reference = k * (error); //ang,lin
 
 
     /// PSEUDOINVERSE!!!!
-
-    // TODO initialize algo
-    //qdot = [arm arm arm arm wx wy wz x y z]
     CMAT::Matrix qDot(TOT_DOF,1);
+    //qdot = [arm arm arm arm wx wy wz x y z]
+
+    //pseudo easy
+    //qDot = vehicleReaching.J.RegPseudoInverse(0.001, 0.0001) * vehicleReaching.reference;
+
     CMAT::Matrix Q = CMAT::Matrix::Eye(TOT_DOF);
 
-    equality_icat(&vehicleReaching, &qDot, &Q);
+    inequality_icat(vehicleReaching, qDot, Q);
 
 
     twist.twist.angular.x=qDot(5);
@@ -104,93 +138,83 @@ int main(int argc, char **argv)
 
 //TODO passare il task o le cose singole?
 //int Equalitytask(CMAT::Matrix J, CMAT::Matrix Q, CMAT::Matrix rhop, CMAT::Matrix xdot,) {
-int equality_icat(Task* task, CMAT::Matrix* rhop, CMAT::Matrix* Q) {
+int equality_icat(Task task, CMAT::Matrix &rhop, CMAT::Matrix &Q) {
 
-  CMAT::Matrix J = task->getJacobian(); //J jacobiana task
-  CMAT::Matrix ref = task->getReference(); //  reference del task
-
+  //J jacobiana task
   //Q inizializzata a eye(totDof) prima di fare tutto
   //rhop il controllo cinematico che viene passato a tutti i lower priority task,
   //       che poi alla fine è qdot voluto
-
+  // xdot è reference del task
   //mu double var globale che viene modificata da cmat pseudoinverse varie
   //flag int analogo a mu
   //NOTA: sono doppie: una per calcolare la W una per la barGpinv
 
-  CMAT::Matrix I = CMAT::Matrix::Eye(task->getDof());
+  CMAT::Matrix I = CMAT::Matrix::Eye(TOT_DOF);
   CMAT::Matrix barG, barGtransp, T, W, barGpinv;
   // barG the actual Jacobian
-  barG = J * (*Q);
+  barG = task.J * Q;
   barGtransp = barG.Transpose();
 
   /// Regularization matrices
   // T is the reg. matrix for the different levels of task priority
   // takes into account that not all the controls are available
-  T = (I - (*Q)).Transpose() * (I-(*Q));
+  T = (I - Q).Transpose() * (I-Q);
 
   // compute W to solve the problem of discontinuity due to different priority levels
   W = barG *
       (barGtransp * barG + T)
-        .RegPseudoInverse(task->getThreshold(), task->getLambda(),
-                          task->getMu_W(), task->getFlag_W()) *
+        .RegPseudoInverse(task.threshold, task.lambda, task.mu_W, task.flag_W) *
       barGtransp;
 
   /// Compute the rho for this task
   barGpinv = (barGtransp * barG)
-      .RegPseudoInverse(task->getThreshold(), task->getLambda(),
-                        task->getMu_G(), task->getFlag_G());
-  (*rhop) = (*rhop) + (*Q) * barGpinv * barGtransp * W * (ref - J * (*rhop));
+      .RegPseudoInverse(task.threshold, task.lambda, task.mu_G, task.flag_G);
+  rhop = rhop + Q * barGpinv * barGtransp * W * (task.reference - task.J * rhop);
 
   ///TODO: in ctrl_task_algo calcola anche un tmpProjector e una P_ che non so a che servono
 
 
   /// Update the projector matrix
-  (*Q) = (*Q) * (I - barGpinv * barGtransp * barG);
+  Q = Q * (I - barGpinv * barGtransp * barG);
 
 }
 
-int inequality_icat(Task* task, CMAT::Matrix* rhop, CMAT::Matrix* Q) {
+int inequality_icat(Task task, CMAT::Matrix &rhop, CMAT::Matrix &Q) {
 
-  CMAT::Matrix J = task->getJacobian(); //Jacobiana of task
-  CMAT::Matrix ref = task->getReference(); // Reference of task
-  CMAT::Matrix A = task->getActivation(); // Activation of task
-
-  CMAT::Matrix I = CMAT::Matrix::Eye(task->getDof());
+  CMAT::Matrix I = CMAT::Matrix::Eye(TOT_DOF);
   CMAT::Matrix barG, barGtransp, barGtranspAA, T, H, W, barGpinv;
   // barG the actual Jacobian
-  barG = J * (*Q);
+  barG = task.J * Q;
   barGtransp = barG.Transpose();
-  barGtranspAA = barGtransp * A * A;
+  barGtranspAA = barGtransp * task.A * task.A;
 
   /// Regularization matrices
   // T is the reg. matrix for the different levels of task priority
   // takes into account that not all the controls are available
-  T = (I - (*Q)).Transpose() * (I-(*Q));
+  T = (I - Q).Transpose() * (I-Q);
   // H is the reg. matrix for the activation, i.e. A*(I-A)
   H = barGtransp *
-      (CMAT::Matrix::Eye(task->getDimension()) - A)*
-      A * barG;
+      (CMAT::Matrix::Eye(task.dimension) - task.A)*
+      task.A * barG;
 
   // compute W to solve the problem of discontinuity due to different priority levels
   W = barG *
       (barGtranspAA * barG + T + H)
-        .RegPseudoInverse(task->getThreshold(), task->getLambda(),
-                          task->getMu_W(), task->getFlag_W()) *
+        .RegPseudoInverse(task.threshold, task.lambda, task.mu_W, task.flag_W) *
       barGtranspAA;
 
   barGpinv = (barGtranspAA * barG + H)
-               .RegPseudoInverse(task->getThreshold(), task->getLambda(),
-                                 task->getMu_G(), task->getFlag_G());
+               .RegPseudoInverse(task.threshold, task.lambda, task.mu_G, task.flag_G);
 
 
   ///TODO: in ctrl_task_algo calcola anche un tmpProjector e una P_ che non so a che servono
 
 
   /// Compute the rho for this task
-  (*rhop) = (*rhop) + (*Q) * barGpinv * barGtranspAA * W * (ref - J * (*rhop));
+  rhop = rhop + Q * barGpinv * barGtranspAA * W * (task.reference - task.J * rhop);
 
   /// Update the projector matrix
-  (*Q) = (*Q) * (I - barGpinv * barGtranspAA * barG);
+  Q = Q * (I - barGpinv * barGtranspAA * barG);
 
 }
 

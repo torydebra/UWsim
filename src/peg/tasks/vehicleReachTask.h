@@ -9,6 +9,7 @@
 #include <tf/transform_listener.h>
 #include <tf_conversions/tf_eigen.h>
 #include "../support/support.h"
+#include "../header/transforms.h"
 
 
 class VehicleReachTask : public Task {
@@ -17,6 +18,9 @@ public:
   VehicleReachTask(int dimension, int dof);
   VehicleReachTask(int dimension);
 
+  int updateMatrices(struct Transforms* const transf);
+
+private:
   int setActivation();
   int setJacobian(tf::StampedTransform wTv_tf);
   int setReference(

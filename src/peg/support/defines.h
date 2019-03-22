@@ -16,6 +16,4 @@
 // default one, another can be choosen when construct the task object
 #define LAMBDA_DEFAULT 0.00001
 
-
-
 #endif // DEFINES_H

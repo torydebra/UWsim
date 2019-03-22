@@ -144,10 +144,11 @@ link_directories(
 #   src/${PROJECT_NAME}/peg_pkg.cpp
 # )
 add_library(Publisher src/publisher.cpp)
-add_library(Task classes/task.cpp)
+add_library(Task tasks/task.cpp)
 add_library(Conversions support/conversions.cpp)
 add_library(Prints support/prints.cpp)
-add_library(VehicleReachTask classes/vehicleReachTask.cpp)
+add_library(VehicleReachTask tasks/vehicleReachTask.cpp)
+add_library(Controller src/controller.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -158,8 +159,7 @@ add_library(VehicleReachTask classes/vehicleReachTask.cpp)
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/peg_pkg_node.cpp)
-add_executable(Controller src/controller.cpp)
-add_executable(Controller3 src/controller3.cpp)
+add_executable(Main src/main.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -183,10 +183,13 @@ target_link_libraries(VehicleReachTask
 )
 
 
-target_link_libraries(Controller ${catkin_LIBRARIES})
-target_link_libraries(Controller Publisher)
+target_link_libraries(Controller ${catkin_LIBRARIES}
+    Task
+    linuxcmat
+    VehicleReachTask
+)
 
-target_link_libraries(Controller3
+target_link_libraries(Main
     ${catkin_LIBRARIES}
     Publisher
     Task
@@ -194,6 +197,7 @@ target_link_libraries(Controller3
     linuxcmat
     Conversions
     Prints
+    Controller
 )
 
 #############
