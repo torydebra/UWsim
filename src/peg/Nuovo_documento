@@ -7,3 +7,12 @@ root@Aspire-E15:/usr/include# ln -s /usr/include/eigen3/Eigen Eigen
 
 
 cmat library installation
+
+
+
+
+to add a task:
+CMAKE:
+add_library
+add target_linl_libraries sia per task cpp sia metti sto task cpp come link al main
+

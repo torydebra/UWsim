@@ -2,26 +2,21 @@
 
 std::vector<double> CONV::tfMat3x3_to_vector(tf::Matrix3x3 matrix3x3){
 
-  std::vector<double> array(9);
-  array[0] = matrix3x3.getColumn(0).getX();
-  array[1] = matrix3x3.getColumn(0).getY();
-  array[2] = matrix3x3.getColumn(0).getZ();
-  array[3] = matrix3x3.getColumn(1).getX();
-  array[4] = matrix3x3.getColumn(1).getY();
-  array[5] = matrix3x3.getColumn(1).getZ();
-  array[6] = matrix3x3.getColumn(2).getX();
-  array[7] = matrix3x3.getColumn(2).getY();
-  array[8] = matrix3x3.getColumn(2).getZ();
+  std::vector<double> vector(9);
+  vector[0] = matrix3x3.getColumn(0).getX();
+  vector[1] = matrix3x3.getColumn(0).getY();
+  vector[2] = matrix3x3.getColumn(0).getZ();
+  vector[3] = matrix3x3.getColumn(1).getX();
+  vector[4] = matrix3x3.getColumn(1).getY();
+  vector[5] = matrix3x3.getColumn(1).getZ();
+  vector[6] = matrix3x3.getColumn(2).getX();
+  vector[7] = matrix3x3.getColumn(2).getY();
+  vector[8] = matrix3x3.getColumn(2).getZ();
 
-  return array;
+  return vector;
 
 }
 
-CMAT::RotMatrix CONV::rotMatrix_eigen2cmat(Eigen::Matrix3d mat_eigen){
-
-  CMAT::RotMatrix mat_cmat(mat_eigen.data());
-  return mat_cmat;
-}
 
 Eigen::Matrix3d CONV::rotMatrix_cmat2eigen(CMAT::RotMatrix mat_cmat){
 
@@ -33,11 +28,6 @@ Eigen::Matrix3d CONV::rotMatrix_cmat2eigen(CMAT::RotMatrix mat_cmat){
   return mat_eigen;
 }
 
-CMAT::TransfMatrix CONV::transfMatrix_eigen2cmat(Eigen::Matrix4d mat_eigen){
-
-  CMAT::TransfMatrix mat_cmat(mat_eigen.data());
-  return mat_cmat;
-}
 
 Eigen::Matrix4d CONV::transfMatrix_cmat2eigen(CMAT::TransfMatrix mat_cmat){
 
@@ -59,6 +49,11 @@ CMAT::TransfMatrix CONV::transfMatrix_tf2cmat(tf::StampedTransform mat_tf){
 
   CMAT::TransfMatrix mat_cmat(rot_cmat, orient_cmat);
 
+  return mat_cmat;
+}
+
+CMAT::Matrix CONV::matrix_eigen2cmat(Eigen::MatrixXd mat_eigen){
+  CMAT::Matrix mat_cmat(mat_eigen.rows(), mat_eigen.cols(), mat_eigen.data());
   return mat_cmat;
 }
 

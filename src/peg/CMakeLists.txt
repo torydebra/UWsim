@@ -147,6 +147,7 @@ add_library(Publisher src/publisher.cpp)
 add_library(Task classes/task.cpp)
 add_library(Conversions support/conversions.cpp)
 add_library(Prints support/prints.cpp)
+add_library(VehicleReachTask classes/vehicleReachTask.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -158,7 +159,7 @@ add_library(Prints support/prints.cpp)
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/peg_pkg_node.cpp)
 add_executable(Controller src/controller.cpp)
-add_executable(Controller2 src/controller2.cpp)
+add_executable(Controller3 src/controller3.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -174,13 +175,22 @@ add_executable(Controller2 src/controller2.cpp)
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
+target_link_libraries(VehicleReachTask
+    ${catkin_LIBRARIES}
+    Task
+    linuxcmat
+    Conversions
+)
+
+
 target_link_libraries(Controller ${catkin_LIBRARIES})
 target_link_libraries(Controller Publisher)
 
-target_link_libraries(Controller2
+target_link_libraries(Controller3
     ${catkin_LIBRARIES}
     Publisher
     Task
+    VehicleReachTask
     linuxcmat
     Conversions
     Prints
