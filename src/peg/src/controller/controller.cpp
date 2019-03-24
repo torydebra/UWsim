@@ -1,20 +1,25 @@
-#include "../header/controller.h"
+#include "header/controller.h"
 
-
+/**
+ * @brief Controller::Controller Default constructor
+ * It creates the tasks (with new) and add them to the list of task
+ *
+ *
+ * @note   note: std::vector is nicer because to change the order of priority or to leave for the moment
+ * a task we can simply comment the row.
+ * instead, with tasks as Task**, we need to fill the list with task[0], ...task[i] ... and changing
+ * priority order would be slower.
+ *
+ */
 Controller::Controller() {
 
   //tasks = new Task*[NUM_TASKS]; //not necessary with tasks std::vector
 
-  //note: std::vector is nicer because to change the order of priority or to leave for the moment
-  // a task we can simply comment the row.
-  //instead, with tasks as Task**, we need to fill the list with task[0], ...task[i] ... and changing
-  //priority order would be slower.
-
   /// PUT HERE NEW TASKS. FOR THIS CLASS, ONLY MODIFICATIONS HERE ARE NECESSARY
   // note: order of priority at the moment is here
-  tasks.push_back(new VehicleReachTask(6, TOT_DOF));
-
-
+  bool eqType = true;
+  bool ineqType = false;
+  tasks.push_back(new VehicleReachTask(6, TOT_DOF, eqType));
 
   // store number of task inserted
   numTasks = tasks.size();
@@ -23,7 +28,10 @@ Controller::Controller() {
 
 ///   TO NOT MODIFY BELOW TO ADD NEW TASK
 
-//Important to delete all object pointed
+/** @brief Controller::~Controller Default destructor
+ * @note It is important to delete singularly all object pointed by the vector tasks. simply tasks.clear()
+ * deletes the pointer but not the object Task pointed
+*/
 Controller::~Controller(){
   for (std::vector< Task* >::iterator it = tasks.begin() ; it != tasks.end(); ++it)
     {
@@ -32,13 +40,29 @@ Controller::~Controller(){
     tasks.clear();
 }
 
+/**
+ * @brief Controller::updateTransforms This function calls all the updateMatrices of each task inserted in the
+ * costructor.
+ * @param transf the struct where all infos needed by all the task are
+ * @return 0 to correct execution
+ * @note usage of overridden pure virtual method updateMatrices
+ */
 int Controller::updateTransforms(struct Transforms* const transf){
 
   for (int i=0; i<numTasks; i++){
     tasks[i]->updateMatrices(transf);
   }
+
+  return 0;
 }
 
+/**
+ * @brief Controller::execAlgorithm this function calls the step of the algorithm modifying (in the for)
+ * each time the projection matrix Q and command vector qDot.
+ * The function call equalityIcat or inequalityIcat according to the type of task.
+ * @return the qDot command to be send to the robot at each loop
+ *
+ */
 std::vector<double> Controller::execAlgorithm(){
 
   //initialize qdot and Q for algorithm
@@ -47,7 +71,11 @@ std::vector<double> Controller::execAlgorithm(){
   CMAT::Matrix Q = CMAT::Matrix::Eye(TOT_DOF);
 
   for (int i=0; i<numTasks; i++){
-    Controller::equalityIcat(tasks[i], &qDot_cmat, &Q);
+    if (tasks[i]->eqType){
+      Controller::equalityIcat(tasks[i], &qDot_cmat, &Q);
+    } else {
+      Controller::inequalityIcat(tasks[i], &qDot_cmat, &Q);
+    }
   }
 
   std::vector<double> qDot_vect(TOT_DOF);
@@ -61,20 +89,26 @@ std::vector<double> Controller::execAlgorithm(){
 
 }
 
-//TODO passare il task o le cose singole?
-//int Equalitytask(CMAT::Matrix J, CMAT::Matrix Q, CMAT::Matrix rhop, CMAT::Matrix xdot,) {
-int  Controller::equalityIcat(Task* task, CMAT::Matrix* rhop, CMAT::Matrix* Q) {
+/**
+ * @brief Controller::equalityIcat icat algorithm taken from another code. It uses the regolarized pseudoinverse
+ * of cmat library.
+ * @param task for convenience, a pointer to the task is passed even if the class has
+ * the list of task std::vector<Task*> tasks as member. Anyway, it is only a pointer, no copy of the heavy
+ * object task is performed.
+ * @param rhop the "temporary" command qdot which will be modified by succesively calls of Icat
+ * @param Q the prokection matrix which will be modified by succesively calls of Icat
+ * @return 0 to correct execution
+ *
+ * @note mu and flag are variable needed by cmat pseudoinverse.
+ * In cmat library they are labelled as "out" variables because the functions there modify them.
+ * Note that they are two couples: one for calculate W matrix, the other for barGpinv
+ * @note even though this function is a special case of inequality (with Activation identity matrix) it is
+ * convenient to gain computation speed.
+ */
+int Controller::equalityIcat(Task* task, CMAT::Matrix* rhop, CMAT::Matrix* Q) {
 
-  CMAT::Matrix J = task->getJacobian(); //J jacobiana task
-  CMAT::Matrix ref = task->getReference(); //  reference del task
-
-  //Q inizializzata a eye(totDof) prima di fare tutto
-  //rhop il controllo cinematico che viene passato a tutti i lower priority task,
-  //       che poi alla fine è qdot voluto
-
-  //mu double var globale che viene modificata da cmat pseudoinverse varie
-  //flag int analogo a mu
-  //NOTA: sono doppie: una per calcolare la W una per la barGpinv
+  CMAT::Matrix J = task->getJacobian(); //J task jacobian
+  CMAT::Matrix ref = task->getReference(); //task reference
 
   CMAT::Matrix I = CMAT::Matrix::Eye(task->getDof());
   CMAT::Matrix barG, barGtransp, T, W, barGpinv;
@@ -109,7 +143,21 @@ int  Controller::equalityIcat(Task* task, CMAT::Matrix* rhop, CMAT::Matrix* Q) {
   return 0;
 
 }
-
+/**
+ * @brief Controller::inequalityIcat icat algorithm taken from another code. It uses the regolarized pseudoinverse
+ * of cmat library.
+ * @param task for convenience, a pointer to the task is passed even if the class has
+ * the list of task std::vector<Task*> tasks as member. Anyway, it is only a pointer, no copy of the heavy
+ * object task is performed.
+ * @param rhop the "temporary" command qdot which will be modified by succesively calls of Icat
+ * @param Q the prokection matrix which will be modified by succesively calls of Icat
+ * @return 0 to correct execution
+ *
+ * @note mu and flag are variable needed by cmat pseudoinverse.
+ * In cmat library they are labelled as "out" variables because the functions there modify them.
+ * Note that they are two couples: one for calculate W matrix, the other for barGpinv
+ * @note this is the inequality version, where more computations are necessary.
+ */
 int Controller::inequalityIcat(Task* task, CMAT::Matrix* rhop, CMAT::Matrix* Q) {
 
   CMAT::Matrix J = task->getJacobian(); //Jacobiana of task

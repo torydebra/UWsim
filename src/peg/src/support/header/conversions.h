@@ -1,9 +1,8 @@
-#ifndef SUPPORT_H
-#define SUPPORT_H
+#ifndef CONVERSIONS_H
+#define CONVERSIONS_H
 
 #include <Eigen/Core>
 #include <cmat/cmat.h>
-#include <tf/tf.h>
 #include <tf_conversions/tf_eigen.h>
 
 namespace CONV{
@@ -34,9 +33,4 @@ namespace CONV{
 
 }
 
-namespace PRINT{
-  int printRotMatrix_tf(tf::Transform transform);
-  int printMatrix3x3_tf(tf::Matrix3x3 matrix);
-}
-
-#endif // SUPPORT_H
+#endif // CONVERSIONS_H

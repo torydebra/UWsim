@@ -3,10 +3,15 @@
 
 #include <cmat/cmat.h>
 #include <Eigen/Core>
-#include "../support/support.h"
-#include "../header/transforms.h"
+#include "../../support/header/transforms.h"
+#include "../../support/header/conversions.h"
+#include "../../support/header/defines.h"
 
 
+/** @brief ABSTRACT class task. Each task is a derived class of this class. It contains all the variable that the
+ * task must have, methods to get these protected variables, and a pure virtual function that the derived class must
+ * implement.
+*/
 class Task
 {
 private:
@@ -27,8 +32,8 @@ protected:
   int threshold;
   int lambda;
 
-  Task(int dimension, int dof);
-  Task(int dimension);
+  Task(int dimension, int dof, bool eqType);
+  Task(int dimension, bool eqType);
 
 public:
 
@@ -54,7 +59,7 @@ public:
   int getDof();
   int getDimension();
 
-
+  bool eqType;
 
 };
 

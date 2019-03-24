@@ -1,18 +1,4 @@
-#include <ros/ros.h>
-
-#include <Eigen/Core>
-#include <boost/chrono.hpp>
-#include <boost/thread/thread.hpp>
-
-#include "../support/support.h"
-#include "../support/defines.h"
-
-#include "../header/publisher.h"
-#include "../header/controller.h"
-
-#include "../header/transforms.h"
-
-#include "rosInterface.h"
+#include "header/main.h"
 
 
 

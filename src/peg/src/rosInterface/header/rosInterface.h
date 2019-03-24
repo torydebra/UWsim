@@ -5,10 +5,12 @@
 #include <tf/transform_listener.h>
 
 #include <Eigen/Core>
-#include "../support/support.h"
-#include "../support/defines.h"
+#include "../../support/header/conversions.h"
+#include "../../support/header/defines.h"
 
-
+/** @brief RosInterface: a ros node responsible of taken info from simulator and robot sensors,
+ * and of given commands back. It is the intermiate layer between robot and mission manager ("main")
+**/
 class RosInterface
 {
 public:

@@ -3,11 +3,13 @@
 
 #include "task.h" // task.h will include other header (like cmat and eigen)
 
+/** @brief Task to make the vehicle reach a goal (both linear and angular position)
+*/
 class VehicleReachTask : public Task {
 
 public:
-  VehicleReachTask(int dimension, int dof);
-  VehicleReachTask(int dimension);
+  VehicleReachTask(int dimension, int dof, bool eqType);
+  VehicleReachTask(int dimension, bool eqType);
 
   int updateMatrices(struct Transforms* const transf);
 

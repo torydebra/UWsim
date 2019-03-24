@@ -1,17 +1,29 @@
-#include "vehicleReachTask.h"
+#include "header/vehicleReachTask.h"
 
-VehicleReachTask::VehicleReachTask(int dimension, int dof)
-  : Task(dimension, dof) {}
+/**
+ * @brief VehicleReachTask::VehicleReachTask Constructor of specific task simply calls the parent constructor
+ * through inizializer list
+ * @param dimension dimension of the task (e.g. 1 for scalar task)
+ * @param dof degrees of freedom of the robot (4+6 for girona500 with 4DOF arm)
+ * @param eqType true or false for equality or inequality task
+ */
+VehicleReachTask::VehicleReachTask(int dimension, int dof, bool eqType)
+  : Task(dimension, dof, eqType) {}
 
-VehicleReachTask::VehicleReachTask(int dimension)
-  : Task(dimension) {}
+VehicleReachTask::VehicleReachTask(int dimension, bool eqType)
+  : Task(dimension, eqType) {}
 
-
+/**
+ * @brief VehicleReachTask::updateMatrices overriden of the pure virtual method of Task parent class
+ * @param transf struct filled with all transformations needed by the task to compute the matrices
+ * @return 0 for correct execution
+ */
 int VehicleReachTask::updateMatrices(struct Transforms* const transf){
 
   setActivation();
   setJacobian(transf->wTv_eigen);
   setReference(transf->wTv_eigen, transf->wTgoal_eigen);
+  return 0;
 }
 
 int VehicleReachTask::setJacobian(Eigen::Matrix4d wTv_eigen){

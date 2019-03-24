@@ -147,13 +147,13 @@ link_directories(
 # add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/peg_pkg.cpp
 # )
-add_library(Conversions support/conversions.cpp)
-add_library(Prints support/prints.cpp)
-add_library(Controller src/controller.cpp)
-add_library(RosInterface src/rosInterface.cpp)
+add_library(Conversions src/support/conversions.cpp)
+add_library(Prints src/support/prints.cpp)
+add_library(Controller src/controller/controller.cpp)
+add_library(RosInterface src/rosInterface/rosInterface.cpp)
 ## ADD library new task here
-add_library(Task tasks/task.cpp)
-add_library(VehicleReachTask tasks/vehicleReachTask.cpp)
+add_library(Task src/tasks/task.cpp)
+add_library(VehicleReachTask src/tasks/vehicleReachTask.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -228,9 +228,9 @@ target_link_libraries(VehicleReachTask
 #   scripts/my_python_script
 #   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
-install(PROGRAMS src/keyboardCommandTwist_A.py
+install(PROGRAMS script/keyboardCommandTwist_A.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-install(PROGRAMS src/keyboardCommandOdom_A.py
+install(PROGRAMS script/keyboardCommandOdom_A.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 ## Mark executables and/or libraries for installation

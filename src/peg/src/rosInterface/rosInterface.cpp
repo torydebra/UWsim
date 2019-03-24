@@ -1,5 +1,11 @@
-#include "rosInterface.h"
+#include "header/rosInterface.h"
 
+/** @brief RosInterface Constructor
+
+    @param robotName the name of the robot (found in .xml file of the scene)
+    @param topicTwist the name of the topic where twist command must be published
+    @param arcg, argv the standard argument of c++ main, they are needed for ros::init
+*/
 RosInterface::RosInterface(std::string robotName, std::string topicTwist, int argc, char **argv)
 {
 

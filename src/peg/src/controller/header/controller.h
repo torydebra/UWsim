@@ -3,13 +3,16 @@
 
 #include <cmat/cmat.h>
 
-#include "../support/defines.h"
-#include "transforms.h"
+#include "../../support/header/defines.h"
+#include "../../support/header/transforms.h"
 
-#include "../tasks/task.h"
-#include "../tasks/vehicleReachTask.h"
+#include "../../tasks/header/vehicleReachTask.h"
 
+/** @brief The Controller class is responsabile of taking matrices and giving them to Tasks classes,
+ * so they can compute their activations, references, jacobians, etc matrices
+ * Its main scope is to execute the icat algorithm.
 
+*/
 class Controller {
 
 public:
@@ -25,8 +28,6 @@ public:
 
   int updateTransforms(struct Transforms* const transf);
   std::vector<double> execAlgorithm();
-
-
 
 private:
   int equalityIcat(Task* task, CMAT::Matrix* rhop, CMAT::Matrix* Q);
