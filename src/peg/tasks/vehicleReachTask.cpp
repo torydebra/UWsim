@@ -10,26 +10,23 @@ VehicleReachTask::VehicleReachTask(int dimension)
 int VehicleReachTask::updateMatrices(struct Transforms* const transf){
 
   setActivation();
-  setJacobian(transf->wTv_tf);
-  setReference(transf->wTv_tf, transf->wTgoal_cmat);
+  setJacobian(transf->wTv_eigen);
+  setReference(transf->wTv_eigen, transf->wTgoal_eigen);
 }
 
-int VehicleReachTask::setJacobian(tf::StampedTransform wTv_tf){
+int VehicleReachTask::setJacobian(Eigen::Matrix4d wTv_eigen){
 
-  Eigen::MatrixXd jacobian_eigen(dimension, dof);
-  jacobian_eigen = Eigen::MatrixXd::Zero(dimension, dof);
-
-  Eigen::Matrix3d wRv_Eigen;
-  tf::matrixTFToEigen(wTv_tf.getBasis(), wRv_Eigen);
+  Eigen::MatrixXd jacobian_eigen = Eigen::MatrixXd::Zero(dimension, dof);
+  Eigen::Matrix3d wRv_eigen = wTv_eigen.topLeftCorner(3,3);
 
   //matrix([1:6];[1:4]) deve restare zero
   //matrix([1:3];[5:7]) parte linear
-  jacobian_eigen.block(0,4, 3,3) = wRv_Eigen;
+  jacobian_eigen.block(0,4, 3,3) = wRv_eigen; //block: beginning row, beginning column,  dimensions (rows & columns)
 
   //matrix([4:6];[8:10]) parte angolare
   //according to eigen doc, using these kind of specific function (and not
   //.block) improves performance
-  jacobian_eigen.bottomRightCorner(3,3) = wRv_Eigen;
+  jacobian_eigen.bottomRightCorner(3,3) = wRv_eigen;
 
   //to cmat
   //eigen unroll to vector for cmat function
@@ -46,9 +43,10 @@ int VehicleReachTask::setActivation(){
 }
 
 int VehicleReachTask::setReference(
-    tf::StampedTransform wTv_tf, CMAT::TransfMatrix wTg_cmat){
+    Eigen::Matrix4d wTv_eigen, Eigen::Matrix4d wTg_eigen){
 
-  CMAT::TransfMatrix wTv_cmat = CONV::transfMatrix_tf2cmat(wTv_tf);
+  CMAT::TransfMatrix wTv_cmat = CONV::matrix_eigen2cmat(wTv_eigen);
+  CMAT::TransfMatrix wTg_cmat = CONV::matrix_eigen2cmat(wTg_eigen);
   CMAT::Vect6 error = CMAT::CartError(wTg_cmat, wTv_cmat);
   double k = 0.2;
   this->reference = k * (error); //ang,lin

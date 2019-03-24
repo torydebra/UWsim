@@ -1,6 +1,6 @@
 #include "support.h"
 
-int PRINT::printRotMatrix_tf(tf::StampedTransform transform){
+int PRINT::printRotMatrix_tf(tf::Transform transform){
 
   std::cout <<"\n\n"<< transform.getBasis().getColumn(0).getX() << "\t"
             << transform.getBasis().getColumn(1).getX() << "\t"

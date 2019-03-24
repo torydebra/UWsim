@@ -1,12 +1,10 @@
 #ifndef TASK_H
 #define TASK_H
 
-#include <ros/ros.h>
 #include <cmat/cmat.h>
 #include <Eigen/Core>
-#include <Eigen/Geometry>
-#include <tf/transform_listener.h>
-#include <tf_conversions/tf_eigen.h>
+#include "../support/support.h"
+#include "../header/transforms.h"
 
 
 class Task

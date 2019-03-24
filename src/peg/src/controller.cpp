@@ -30,6 +30,9 @@ Controller::~Controller(){
 
 int Controller::updateTransforms(struct Transforms* const transf){
 
+
+
+
   for (int i=0; i<numTasks; i++){
     tasks[i]->updateMatrices(transf);
   }

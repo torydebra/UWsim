@@ -16,6 +16,10 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   tf_conversions
 )
+#package not catkin
+#find_package(
+#    )
+
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -120,7 +124,7 @@ catkin_package(
      topic_tools
      tf
      tf_conversions
-   DEPENDS 
+   DEPENDS
      roscpp
 )
 
@@ -144,11 +148,12 @@ link_directories(
 #   src/${PROJECT_NAME}/peg_pkg.cpp
 # )
 add_library(Publisher src/publisher.cpp)
-add_library(Task tasks/task.cpp)
 add_library(Conversions support/conversions.cpp)
 add_library(Prints support/prints.cpp)
-add_library(VehicleReachTask tasks/vehicleReachTask.cpp)
 add_library(Controller src/controller.cpp)
+## ADD library new task here
+add_library(Task tasks/task.cpp)
+add_library(VehicleReachTask tasks/vehicleReachTask.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -175,30 +180,36 @@ add_executable(Main src/main.cpp)
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-target_link_libraries(VehicleReachTask
-    ${catkin_LIBRARIES}
-    Task
-    linuxcmat
-    Conversions
-)
 
-
-target_link_libraries(Controller ${catkin_LIBRARIES}
-    Task
-    linuxcmat
-    VehicleReachTask
-)
 
 target_link_libraries(Main
     ${catkin_LIBRARIES}
     Publisher
-    Task
-    VehicleReachTask
-    linuxcmat
-    Conversions
     Prints
     Controller
 )
+
+target_link_libraries(Conversions
+    tf_conversions
+)
+
+
+target_link_libraries(Controller
+    linuxcmat
+    Task
+    #put below new task (is it necessary? YES)
+    VehicleReachTask
+)
+
+
+### ADD lik libraries for new task here
+#NOTE:: eigen e tf not to include, they are already include for all above
+target_link_libraries(VehicleReachTask
+    Task
+    linuxcmat
+    Conversions
+)
+
 
 #############
 ## Install ##

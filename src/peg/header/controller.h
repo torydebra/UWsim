@@ -1,10 +1,13 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
+
 #include <cmat/cmat.h>
-#include "../tasks/task.h"
-#include "../tasks/vehicleReachTask.h"
+
 #include "../support/defines.h"
 #include "transforms.h"
+
+#include "../tasks/task.h"
+#include "../tasks/vehicleReachTask.h"
 
 
 class Controller {

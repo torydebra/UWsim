@@ -1,14 +1,12 @@
 #include <ros/ros.h>
 #include <Eigen/Core>
-#include <Eigen/Geometry>
 #include <tf/transform_listener.h>
-#include <tf_conversions/tf_eigen.h>
-#include "../header/publisher.h"
-#include "../header/controller.h"
-#include <cmat/cmat.h>
-#include "../tasks/vehicleReachTask.h"
+
 #include "../support/support.h"
 #include "../support/defines.h"
+
+#include "../header/publisher.h"
+#include "../header/controller.h"
 
 #include "../header/transforms.h"
 
@@ -35,20 +33,23 @@ int main(int argc, char **argv)
 
 
   /// GOAL VEHICLE
-  double goalLine[3] = {-0.287, -0.062, 7.424};
-  CMAT::Vect3 goal_xyz(goalLine);
-  CMAT::RotMatrix goal_rot = CMAT::Matrix::Eye(3);
-  CMAT::TransfMatrix wTgoal_cmat (goal_rot, goal_xyz);
+  double goalLinearVect[] = {-0.287, -0.062, 7.424};
+  Eigen::Matrix4d wTgoal_eigen = Eigen::Matrix4d::Identity();
 
-
+  //rot part
+  wTgoal_eigen.topLeftCorner(3,3) = Eigen::Matrix3d::Identity();
+  //trasl part
+  wTgoal_eigen(0, 3) = goalLinearVect[0];
+  wTgoal_eigen(1, 3) = goalLinearVect[1];
+  wTgoal_eigen(2, 3) = goalLinearVect[2];
   //TRANSFORM LISTENER things
   tf::TransformListener tfListener;
   tf::StampedTransform wTv_tf;
 
   //struct transforms to pass them to Controller class
   struct Transforms transf;
-  transf.wTgoal_cmat = wTgoal_cmat;
-  transf.wTv_tf = wTv_tf;
+  transf.wTgoal_eigen = wTgoal_eigen;
+  transf.wTv_eigen = CONV::transfMatrix_tf2eigen(wTv_tf);
 
   //Controller
   Controller controller;
@@ -69,7 +70,7 @@ int main(int argc, char **argv)
       continue;
     }
 
-    transf.wTv_tf = wTv_tf;
+    transf.wTv_eigen = CONV::transfMatrix_tf2eigen(wTv_tf);
     controller.updateTransforms(&transf);
 
     CMAT::Matrix qDot = controller.execAlgorithm();

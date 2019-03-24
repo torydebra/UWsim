@@ -1,9 +1,10 @@
 #ifndef SUPPORT_H
 #define SUPPORT_H
 
-#include <Eigen/Geometry>
+#include <Eigen/Core>
 #include <cmat/cmat.h>
 #include <tf/tf.h>
+#include <tf_conversions/tf_eigen.h>
 
 namespace CONV{
 
@@ -20,12 +21,21 @@ namespace CONV{
     CMAT::Matrix matrix_eigen2cmat(Eigen::MatrixXd mat_eigen);
 
     /// tf to cmat
-    CMAT::TransfMatrix transfMatrix_tf2cmat(tf::StampedTransform mat_tf);
+    // not necessary at moment
+    //CMAT::TransfMatrix transfMatrix_tf2cmat(tf::Transform mat_tf);
+
+    /// tf to eigen
+    Eigen::Matrix4d transfMatrix_tf2eigen(tf::Transform mat_tf);
+
+    /// eigen to tf
+    //not necessary at moment
+//    tf::Transform transfMatrix_eigen2tf(Eigen::Matrix4d mat_eigen);
+
 
 }
 
 namespace PRINT{
-  int printRotMatrix_tf(tf::StampedTransform transform);
+  int printRotMatrix_tf(tf::Transform transform);
   int printMatrix3x3_tf(tf::Matrix3x3 matrix);
 }
 

@@ -1,14 +1,13 @@
 #ifndef TRANSFORMS_H
 #define TRANSFORMS_H
 
-#include <cmat/cmat.h>
-#include <tf/tf.h>
+#include <Eigen/Core>
 
 struct Transforms {
 
-  // for vehicle
-  CMAT::TransfMatrix wTgoal_cmat;
-  tf::StampedTransform wTv_tf;
+  // for vehicleReachTask
+  Eigen::Matrix4d wTgoal_eigen;
+  Eigen::Matrix4d wTv_eigen;
 
 };
 
