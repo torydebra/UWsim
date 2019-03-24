@@ -8,6 +8,8 @@ root@Aspire-E15:/usr/include# ln -s /usr/include/eigen3/Eigen Eigen
 
 cmat library installation
 
+boost (already installed?)
+
 
 
 
@@ -19,8 +21,7 @@ add target_linl_libraries sia per task cpp sia metti sto task cpp come link al m
 
 
 Libraries:
-**tf** (to get transformation from ros) usata solo dal (main) che gestisce le cose ros.
-TODO: creare file ros che gestisce cose di ros e fare main a parte?
+**tf** (to get transformation from ros) usata solo dal (rosInterface) che gestisce le cose ros.
 
 **cmat** solo per computazioni pseudoinverse in icat eq e ican ineq, so nota solo alla classe controller che effettivamente fa ste operazioni. Indipendente da ros
 

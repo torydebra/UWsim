@@ -147,10 +147,10 @@ link_directories(
 # add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/peg_pkg.cpp
 # )
-add_library(Publisher src/publisher.cpp)
 add_library(Conversions support/conversions.cpp)
 add_library(Prints support/prints.cpp)
 add_library(Controller src/controller.cpp)
+add_library(RosInterface src/rosInterface.cpp)
 ## ADD library new task here
 add_library(Task tasks/task.cpp)
 add_library(VehicleReachTask tasks/vehicleReachTask.cpp)
@@ -184,7 +184,7 @@ add_executable(Main src/main.cpp)
 
 target_link_libraries(Main
     ${catkin_LIBRARIES}
-    Publisher
+    RosInterface
     Prints
     Controller
 )
@@ -199,6 +199,10 @@ target_link_libraries(Controller
     Task
     #put below new task (is it necessary? YES)
     VehicleReachTask
+)
+
+target_link_libraries(RosInterface
+    tf
 )
 
 

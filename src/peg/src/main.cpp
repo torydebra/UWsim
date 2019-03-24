@@ -1,6 +1,8 @@
 #include <ros/ros.h>
+
 #include <Eigen/Core>
-#include <tf/transform_listener.h>
+#include <boost/chrono.hpp>
+#include <boost/thread/thread.hpp>
 
 #include "../support/support.h"
 #include "../support/defines.h"
@@ -10,27 +12,17 @@
 
 #include "../header/transforms.h"
 
+#include "rosInterface.h"
+
 
 
 int main(int argc, char **argv)
 {
+
+
+
   ROS_INFO("[MAIN] Start");
-  ros::init(argc, argv, "main");
-  ros::NodeHandle nh;
-
-  std::string topicTwist = "/uwsim/g500_A/twist_command_A";
-  ros::Publisher pubTwist = nh.advertise<geometry_msgs::TwistStamped>(topicTwist,1);
-
-
-  Publisher pubClassTwist(pubTwist);
-  geometry_msgs::TwistStamped twist;
-  twist.twist.linear.x=0;
-  twist.twist.linear.y=0;
-  twist.twist.linear.z=0;
-  twist.twist.angular.x=0;
-  twist.twist.angular.y=0;
-  twist.twist.angular.z=0;
-
+  ros::init(argc, argv, "main"); //necessary for real ros node rosinterface
 
   /// GOAL VEHICLE
   double goalLinearVect[] = {-0.287, -0.062, 7.424};
@@ -42,73 +34,34 @@ int main(int argc, char **argv)
   wTgoal_eigen(0, 3) = goalLinearVect[0];
   wTgoal_eigen(1, 3) = goalLinearVect[1];
   wTgoal_eigen(2, 3) = goalLinearVect[2];
-  //TRANSFORM LISTENER things
-  tf::TransformListener tfListener;
-  tf::StampedTransform wTv_tf;
 
   //struct transforms to pass them to Controller class
   struct Transforms transf;
   transf.wTgoal_eigen = wTgoal_eigen;
-  transf.wTv_eigen = CONV::transfMatrix_tf2eigen(wTv_tf);
 
-  //Controller
+  ///Controller
   Controller controller;
 
-  //Wait to transform to be ready (or fail if wait more than 3 sec)
-  tfListener.waitForTransform("world", "/girona500_A", ros::Time(0), ros::Duration(3.0));
+  ///Ros interface
+  RosInterface rosInterface("girona500_A", "/uwsim/g500_A/twist_command_A", argc, argv);
 
-
-  ros::Rate r(1000); //1Hz
+  rosInterface.init();
+  Eigen::Matrix4d wTv_eigen;
+  int ms = 10; //100 H
   while(ros::ok()){
-    try {
 
-    tfListener.lookupTransform("world", "/girona500_A", ros::Time(0), wTv_tf);
+    rosInterface.getwTv(&wTv_eigen);
+    transf.wTv_eigen = wTv_eigen;
 
-    } catch (tf::TransformException &ex) {
-      ROS_ERROR("%s",ex.what());
-      ros::Duration(1.0).sleep();
-      continue;
-    }
-
-    transf.wTv_eigen = CONV::transfMatrix_tf2eigen(wTv_tf);
     controller.updateTransforms(&transf);
 
-    CMAT::Matrix qDot = controller.execAlgorithm();
+    std::vector<double> qDot = controller.execAlgorithm();
 
+    rosInterface.sendQDot(qDot);
 
-    twist.twist.angular.x=qDot(5);
-    twist.twist.angular.y=qDot(6);
-    twist.twist.angular.z=qDot(7);
-    twist.twist.linear.x=qDot(8);
-    twist.twist.linear.y=qDot(9);
-    twist.twist.linear.z=qDot(10);
-
-    pubClassTwist.publish(twist);
-
-    ros::spinOnce();
-    r.sleep();
+    boost::this_thread::sleep_for(boost::chrono::milliseconds(ms));
   }
 
   return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

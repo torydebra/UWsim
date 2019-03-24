@@ -23,32 +23,41 @@ Controller::Controller() {
 
 ///   TO NOT MODIFY BELOW TO ADD NEW TASK
 
-//TODO important to delete all object pointed
+//Important to delete all object pointed
 Controller::~Controller(){
-
+  for (std::vector< Task* >::iterator it = tasks.begin() ; it != tasks.end(); ++it)
+    {
+      delete (*it);
+    }
+    tasks.clear();
 }
 
 int Controller::updateTransforms(struct Transforms* const transf){
-
-
-
 
   for (int i=0; i<numTasks; i++){
     tasks[i]->updateMatrices(transf);
   }
 }
 
-CMAT::Matrix Controller::execAlgorithm(){
+std::vector<double> Controller::execAlgorithm(){
 
   //initialize qdot and Q for algorithm
   //qdot = [arm arm arm arm wx wy wz x y z]
-  CMAT::Matrix qDot = CMAT::Matrix (TOT_DOF,1);
+  CMAT::Matrix qDot_cmat = CMAT::Matrix (TOT_DOF,1);
   CMAT::Matrix Q = CMAT::Matrix::Eye(TOT_DOF);
 
   for (int i=0; i<numTasks; i++){
-    Controller::equalityIcat(tasks[i], &qDot, &Q);
+    Controller::equalityIcat(tasks[i], &qDot_cmat, &Q);
   }
-  return qDot;
+
+  std::vector<double> qDot_vect(TOT_DOF);
+  int i = 1;
+  for(std::vector<double>::iterator it = qDot_vect.begin(); it != qDot_vect.end(); ++it) {
+    *it = qDot_cmat(i);
+    i++;
+  }
+
+  return qDot_vect;
 
 }
 

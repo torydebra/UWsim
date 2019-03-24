@@ -24,7 +24,7 @@ public:
 
 
   int updateTransforms(struct Transforms* const transf);
-  CMAT::Matrix execAlgorithm();
+  std::vector<double> execAlgorithm();
 
 
 
